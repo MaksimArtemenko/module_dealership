@@ -1,20 +1,48 @@
 class Dealership:
     def __init__(self, dealership_name: str, dealership_ID: int):
+        self.dealerships = []
+        self.dealership_name = dealership_name
+        self.dealership_ID = dealership_ID
         if not isinstance(dealership_name, str):
             raise ValueError('dealership_name має бути рядком')
-        self.dealership_name = dealership_name
-
         if not isinstance(dealership_ID, int):
             raise ValueError('dealership_ID має бути цілим числом')
-        self.dealership_ID = dealership_ID
         if not isinstance(self.dealerships, list):
             raise ValueError('dealerships має бути списком')
-        self.dealerships = []
+
+    def add_dealership(self, dealership):
+        new_dealership = {
+            "Name" : dealership.dealership_name,
+            "ID" : dealership.dealership_ID
+        }
+        if any(d['ID'] == dealership.dealership_ID for d in self.dealerships):
+            raise ValueError('Автосалон з таким ID уже існує')
+        self.dealerships.append(new_dealership)
+        return new_dealership
+
+    def remove_dealership(self, dealership_ID):
+        self.dealerships = [d for d in self.dealerships if d['ID'] != dealership_ID]
+        if not self.dealerships:
+            return "Список автосалонів порожній"
+        result = "Оновлений список автосалонів:\n"
+        for dealership in self.dealerships:
+            result += f"ID: {dealership['ID']}, Назва: {dealership['Name']}\n"
+        return result
+
+    def list_dealerships(self):
+        if not self.dealerships:
+            return "Список автосалонів порожній"
+        result = "Список автосалонів:\n"
+        for dealership in self.dealerships:
+            result += f"ID: {dealership['ID']}, Назва: {dealership['Name']}\n"
+        return result
 
 
 class Car:
+    car_list = []
     def __init__(self, brand: str, model: str, years: int, type: str, purchasePrice: int, sellPrice: int, gearbox: str,
-                 fuelType: str, colors: str):
+                 fuelType: str, colors: str,carID: int):
+
         self.brand = brand
         self.model = model
         self.years = years
@@ -24,12 +52,39 @@ class Car:
         self.gearbox = gearbox
         self.fuelType = fuelType
         self.colors = colors
+        self.carID = carID
+
         if not isinstance(brand, str) or not isinstance(model, str) or not isinstance(type, str) or not isinstance(
                 gearbox, str) or not isinstance(fuelType, str) or not isinstance(colors, str):
-            raise ValueError("The data must be a string")
-        if not isinstance(purchasePrice, int) or not isinstance(sellPrice, int) or not isinstance(years, int):
-            raise ValueError("The data must be a int")
+            raise ValueError("Повинно бути рядком значення")
+        if not isinstance(purchasePrice, int) or not isinstance(sellPrice, int) or not isinstance(years, int) or not isinstance(carID, int):
+            raise ValueError("Повинно бути числове значення")
 
+    def add_car(self, car):
+        new_car = {
+            "brand": car.brand,
+            "model": car.model,
+            "years": car.years,
+            "Type": car.type,
+            "purchasePrice": car.purchasePrice,
+            "sellPrice": car.sellPrice,
+            "gearbox": car.gearbox,
+            "FuelType": car.fuelType,
+            "ID": car.carID,
+        }
+
+        if any(d['ID'] == car.carID for d in car.car_list):
+            raise ValueError('Авто з таким ID уже існує')
+        Car.car_list.append(new_car)
+        return f"Додано авто {car.brand} {car.model} {car.years}, ID: {car.carID}"
+
+    def list_car(self):
+        if not Car.car_list:
+            return "Список авто порожній"
+        result = "Список автосалонів:\n"
+        for car in Car.car_list:
+            result += f"ID: {car['ID']}, Марка: {car['brand']}, Модель: {car['model']}, Рік випуску: {car['years']}, Тип кузову: {car['Type']}, Ціна закупівлі: {car['purchasePrice']}, Ціна продажу: {car['sellPrice']}, Тип КПП: {car['gearbox']}, Тип палива: {car['FuelType']} \n"
+        return result
 
 class Client:
     def __init__(self, client_name: str, last_name: str, email: str, phone_number: str, clientID: int):
@@ -44,12 +99,11 @@ class Client:
             raise ValueError("Name, last name and email must be strings")
         if not "@" in email:
             raise ValueError("Email must start with '@'")
-        phone_str = str(phone_number)
-        if not phone_str.isdigit():
+        if not phone_number.isdigit():
             raise ValueError("Phone number must contain only digits")
-        if len(phone_str) < 12:
+        if len(phone_number) < 12:
             raise ValueError("Phone number is too short")
-        if len(phone_str) > 12:
+        if len(phone_number) > 12:
             raise ValueError("Phone number is too long")
 
 
@@ -58,9 +112,13 @@ class Client:
 class Operation:
     pass
 
-
 try:
-    cl1 = Client("max", "ART", "max06032007@gmail.com", 380993308065, 1)
-    print(cl1.show_client())
+    car1 = Car("BMW", "550i", 2019, "sedan", 10000, 15000, "Manual", "Diesel", "White",1)
+    car2 = Car("BMW", "M5", 2022, "sedan", 10000, 15000, "Auto", "Diesel", "Blue",2)
+    print(car1.add_car(car1))
+    print(car2.add_car(car2))
+    print(car1.list_car())
+
+
 except ValueError as e:
-    print(f"Error: {e}")
+    print("error:", e)
