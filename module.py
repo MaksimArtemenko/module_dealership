@@ -1,3 +1,21 @@
+from twilio.rest import Client
+
+
+account_sid = 'ACeb62d897b384194356c3e754d316c9f0'
+auth_token = '15f04b9ed29928a0e7c08375ae39cbac'
+
+
+client = Client(account_sid, auth_token)
+
+
+message = client.messages.create(
+    body="Ваша заявка прийнята, вам зателефонують через 15 хвилин.SPIONIRO GOLUBINI)",
+    from_='+15076045398',
+    to='+380993308065'
+)
+
+print(f"Повідомлення надіслано! SID: {message.sid}")
+
 class Dealership:
     def __init__(self, dealership_name: str, dealership_ID: int):
         self.dealerships = []
@@ -114,11 +132,8 @@ class Operation:
 
 try:
     car1 = Car("BMW", "550i", 2019, "sedan", 10000, 15000, "Manual", "Diesel", "White",1)
-    car2 = Car("BMW", "M5", 2022, "sedan", 10000, 15000, "Auto", "Diesel", "Blue",2)
-    print(car1.add_car(car1))
-    print(car2.add_car(car2))
-    print(car1.list_car())
-
+    #car2 = Car("BMW", "M5", 2022, "sedan", 10000, 15000, "Auto", "Diesel", "Blue",2)
+    #print(send_sms("+380993308065", "Доброго дня,ви залишили заявку на купівлі авто! В найближчий час вам буде відправлено телефонний зв'язок."))
 
 except ValueError as e:
     print("error:", e)
