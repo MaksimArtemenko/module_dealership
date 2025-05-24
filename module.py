@@ -1,8 +1,8 @@
 from twilio.rest import Client
 
 
-account_sid = 'ACeb62d897b384194356c3e754d316c9f0'
-auth_token = '15f04b9ed29928a0e7c08375ae39cbac'
+account_sid = ''
+auth_token = ''
 
 
 client = Client(account_sid, auth_token)
@@ -10,8 +10,8 @@ client = Client(account_sid, auth_token)
 
 message = client.messages.create(
     body="Ваша заявка прийнята, вам зателефонують через 15 хвилин.SPIONIRO GOLUBINI)",
-    from_='+15076045398',
-    to='+380993308065'
+    from_='',
+    to=''
 )
 
 print(f"Повідомлення надіслано! SID: {message.sid}")
@@ -133,7 +133,6 @@ class Operation:
 try:
     car1 = Car("BMW", "550i", 2019, "sedan", 10000, 15000, "Manual", "Diesel", "White",1)
     #car2 = Car("BMW", "M5", 2022, "sedan", 10000, 15000, "Auto", "Diesel", "Blue",2)
-    #print(send_sms("+380993308065", "Доброго дня,ви залишили заявку на купівлі авто! В найближчий час вам буде відправлено телефонний зв'язок."))
 
 except ValueError as e:
     print("error:", e)
