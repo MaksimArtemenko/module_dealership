@@ -1,32 +1,37 @@
-from twilio.rest import Client
-
-
-account_sid = ''
-auth_token = ''
-
-
-client = Client(account_sid, auth_token)
-
-
-message = client.messages.create(
-    body="Ваша заявка прийнята, вам зателефонують через 15 хвилин.SPIONIRO GOLUBINI)",
-    from_='',
-    to=''
-)
-
-print(f"Повідомлення надіслано! SID: {message.sid}")
-
 class Dealership:
     def __init__(self, dealership_name: str, dealership_ID: int):
         self.dealerships = []
         self.dealership_name = dealership_name
         self.dealership_ID = dealership_ID
+        self.cars = []
         if not isinstance(dealership_name, str):
             raise ValueError('dealership_name має бути рядком')
         if not isinstance(dealership_ID, int):
             raise ValueError('dealership_ID має бути цілим числом')
         if not isinstance(self.dealerships, list):
             raise ValueError('dealerships має бути списком')
+
+    def add_car(self, car):
+        if car in self.cars:
+            return "Ця машина вже є в автосалоні"
+
+        self.cars.append(car)
+        car.dealership = self
+        return f"Додано авто {car.brand} {car.model} {car.years}, ID: {car.carID}"
+
+    def list_cars(self):
+        if not self.cars:
+            return f"В автосалоні {self.dealership_name} немає машин."
+
+        result = f"Машини в автосалоні {self.dealership_name}:\n"
+        for car in self.cars:
+            result += (
+                f"- {car.brand} {car.model} ({car.years}), "
+                f"ID: {car.carID}, Тип: {car.type}, "
+                f"Ціна: {car.sellPrice} $\n"
+            )
+        return result
+
 
     def add_dealership(self, dealership):
         new_dealership = {
@@ -58,6 +63,16 @@ class Dealership:
 
 class Car:
     car_list = []
+    def add_to_dealership(self, dealership):
+        if self.dealership is not None:
+            raise ValueError(f"Ця машина вже належить автосалону {self.dealership.dealership_name}!")
+
+        if not isinstance(dealership, Dealership):
+            raise ValueError("Потрібно передати об'єкт класу Dealership")
+        dealership.cars.append(self)
+        self.dealership = dealership
+        return f"Машина {self.brand} {self.model} успішно додана до автосалону {dealership.dealership_name}"
+
     def __init__(self, brand: str, model: str, years: int, type: str, purchasePrice: int, sellPrice: int, gearbox: str,
                  fuelType: str, colors: str,carID: int):
 
@@ -71,6 +86,7 @@ class Car:
         self.fuelType = fuelType
         self.colors = colors
         self.carID = carID
+        self.dealership = None
 
         if not isinstance(brand, str) or not isinstance(model, str) or not isinstance(type, str) or not isinstance(
                 gearbox, str) or not isinstance(fuelType, str) or not isinstance(colors, str):
@@ -78,23 +94,29 @@ class Car:
         if not isinstance(purchasePrice, int) or not isinstance(sellPrice, int) or not isinstance(years, int) or not isinstance(carID, int):
             raise ValueError("Повинно бути числове значення")
 
-    def add_car(self, car):
-        new_car = {
-            "brand": car.brand,
-            "model": car.model,
-            "years": car.years,
-            "Type": car.type,
-            "purchasePrice": car.purchasePrice,
-            "sellPrice": car.sellPrice,
-            "gearbox": car.gearbox,
-            "FuelType": car.fuelType,
-            "ID": car.carID,
-        }
+        if dealership is not None:
+            self.add_to_dealership(dealership)
 
-        if any(d['ID'] == car.carID for d in car.car_list):
-            raise ValueError('Авто з таким ID уже існує')
-        Car.car_list.append(new_car)
-        return f"Додано авто {car.brand} {car.model} {car.years}, ID: {car.carID}"
+        if dealership is not None:
+            self.add_to_dealership(dealership)
+
+    def add_to_dealership(self, dealership):
+        if self.dealership is not None:
+            raise ValueError(f"Ця машина вже належить автосалону {self.dealership.dealership_name}!")
+
+        if not isinstance(dealership, Dealership):
+            raise ValueError("Потрібно передати об'єкт класу Dealership")
+
+        dealership.cars.append(self)
+        self.dealership = dealership
+        return f"Машина {self.brand} {self.model} додана до {dealership.dealership_name}"
+
+    def get_dealership_info(self):
+        if self.dealership is None:
+            return "Ця машина не належить жодному автосалону."
+        return f"Машина {self.brand} {self.model} знаходиться в {self.dealership.dealership_name} (ID: {self.dealership.dealership_ID})"
+
+
 
     def list_car(self):
         if not Car.car_list:
@@ -132,7 +154,11 @@ class Operation:
 
 try:
     car1 = Car("BMW", "550i", 2019, "sedan", 10000, 15000, "Manual", "Diesel", "White",1)
-    #car2 = Car("BMW", "M5", 2022, "sedan", 10000, 15000, "Auto", "Diesel", "Blue",2)
+    car2 = Car("BMW", "M5", 2022, "sedan", 10000, 15000, "Auto", "Diesel", "Blue",2)
+    print(car1.add_car(car1))
+    print(car2.add_car(car2))
+    print(car1.list_car())
+
 
 except ValueError as e:
     print("error:", e)
