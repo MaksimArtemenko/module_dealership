@@ -21,7 +21,7 @@ class Dealership:
         Dealership.all_dealerships.append(new_dealership)
 
     @staticmethod
-    def list_dealerships():
+    def list_dealerships_car():
             if not Dealership.all_cars_dealerships:
                 return "Немає автомобілів в жодному автосалоні"
 
@@ -49,7 +49,19 @@ class Dealership:
             return "Ця машина вже є в автосалоні"
         self.cars.append(car)
         car.dealership = self
-        return f"Додано авто {car.brand} {car.model} {car.years}, ID: {car.carID}"
+
+        car_info = {
+            "dealership_name":self.dealership_name,
+            "brand":car.brand,
+            "model":car.model,
+            "years":car.years,
+            "type":car.type,
+            "sellPrice":car.sellPrice,
+            "car_ID":car.carID
+        }
+        Dealership.all_cars_dealerships.append(car_info)
+        return f"Додано авто {car.brand} {car.model} {car.years}, ID {car.carID}"
+
 
     def list_cars(self):
         if not hasattr(self, 'dealership_name') or self.dealership_name is None:
@@ -124,28 +136,12 @@ class Car:
 
         if not isinstance(dealership, Dealership):
             raise ValueError("Потрібно передати об'єкт класу Dealership")
-        dealership.cars.append(self)
-        self.dealership = dealership
-        return f"Машина {self.brand} {self.model} успішно додана до автосалону {dealership.dealership_name}"
+        return dealership.add_car(self)
 
     def get_dealership_info(self):
         if self.dealership is None:
             return "Ця машина не належить жодному автосалону."
         return f"Машина {self.brand} {self.model} знаходиться в {self.dealership.dealership_name} (ID: {self.dealership.dealership_ID})"
-
-
-def list_cars(self):
-    if not self.cars:
-        return f"В автосалоні {self.dealership_name} немає автомобілів"
-
-    result = f"Автомобілі в автосалоні {self.dealership_name}:\n"
-    for car in self.cars:
-        result += (f"ID: {car.carID}, "
-                   f"Марка: {car.brand}, "
-                   f"Модель: {car.model}, "
-                   f"Рік випуску: {car.years}, ")
-    return result
-
 
 class Client:
     def __init__(self, client_name: str, last_name: str, email: str, phone_number: str, clientID: int):
@@ -166,27 +162,75 @@ class Client:
             raise ValueError("Невірний номер телефону. Введіть номер телефону в форматі +380123456789")
         if len(phone_number) > 12:
             raise ValueError("Невірний номер телефону. Введіть номер телефону в форматі +380123456789")
-        if phone_number <= 0:
+        if len(phone_number) <= 0:
             raise ValueError("Числове значення повинно бути більше або дорівнює 0")
 
 
     def show_client(self):
             return f"Name:{self._client_name}\nLastname:{self._last_name}\nPhone number:{self._phone_number}\nID:{self.clientID}\n"
 class Operation:
-    pass
+    operation_history = []
+    @staticmethod
+    def leasing_car(client: Client, car: Car, months: int, first_payment: int):
+        if car.dealership is None:
+            raise ValueError("Автомобіль не належить жодному автосалону")
+
+        if not isinstance(months, int) or months <= 0:
+            raise ValueError("Термін лізінгу має бути додатнім числом")
+
+        if not isinstance(first_payment, int) or first_payment <= 0:
+            raise ValueError("Перший внесок має бути додатнім числом")
+
+        monthly_payment = (car.sellPrice - first_payment) / months
+        operation_info = {
+            "type": "Лізінг",
+            "client": f"{client._client_name} {client._last_name}",
+            "car": f"{car.brand} {car.model}",
+            "monthly_payment": monthly_payment,
+            "down_payment": first_payment,
+            "total_price": car.sellPrice
+        }
+        Operation.operation_history.append(operation_info)
+
+        return (f"Лізінг оформленно: {client._client_name} {client._last_name}, отримує {car.brand} {car.model}\n"
+        f"Перший внесок {first_payment}\n"
+        f"Щомісячний платіж: {monthly_payment:.2f} на {months} місяців")
+
+
+    @staticmethod
+    def trade_in(client:Client, old_car: Car, new_car: Car, additional_payment: int = 0):
+        if new_car.dealership is None:
+            raise ValueError("Новий автомобіль не належить жодному автосалону")
+        if old_car.dealership is None:
+            raise ValueError("Старий автомобіль не належить жодному автосалону")
+
+        trade_in_value = old_car.purchasePrice * 0.8
+        total_payment = new_car.sellPrice - trade_in_value + additional_payment
+
+        if old_car.dealership:
+            old_car.dealership.cars.remove(old_car)
+            old_car.dealership = None
+
+        operation_info = {
+            "type":"Трейд-ін",
+            "client":f"{client._client_name} {client._last_name}",
+            "old_car":f"{old_car.brand} {old_car.model}",
+            "new_car":f"{new_car.brand} {new_car.model}",
+            "trade_in_value":trade_in_value,
+            "total_payment":total_payment,
+            "additional_payment":additional_payment
+        }
+        Operation.operation_history.append(operation_info)
+        return (f"Трейд-ін оформлено: {client._client_name} {client._last_name}\n"
+                f"Здає:{old_car.brand} {old_car.model} за {trade_in_value}\n"
+                f"Отримує:{new_car.brand} {new_car.model}\n"
+                f"Додаткова плата {additional_payment}\n"
+                f"Загальна сума: {total_payment:.2f}")
+
+
+
+
+
+
 
 try:
-    d1 = Dealership("D1", 1)
-    d2 = Dealership("D2", 2)
-    car1 = Car("BMW", "550i", 2019, "sedan", 10000, 15000, "Manual", "Diesel", "White",1)
-    car2 = Car("BMW", "M5", 2022, "sedan", 10000, 15000, "Auto", "Diesel", "Blue",2)
-    car3 = Car("BMW", "M6", 2023, "sedan", 10000, 15000, "Auto", "Diesel", "Black",3)
-    print(d1.add_car(car1))
-    print(d2.add_car(car2))
-
-    print(car1.add_to_dealership(d1))
-    print(car2.add_to_dealership(d2))
-    print(car3.add_to_dealership(d1))
-    print(Dealership.list_dealerships())
-except ValueError as e:
-    print("error:", e)
