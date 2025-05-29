@@ -12,6 +12,7 @@ class Dealership:
             raise ValueError('dealership_ID має бути цілим числом')
         if dealership_ID < 0:
             raise ValueError("ID повинно бути додатнім значенням")
+
         new_dealership = {
             "Name": dealership_name,
             "ID": dealership_ID
@@ -164,6 +165,8 @@ class Client:
             raise ValueError("Невірний номер телефону. Введіть номер телефону в форматі +380123456789")
         if len(phone_number) <= 0:
             raise ValueError("Числове значення повинно бути більше або дорівнює 0")
+        if len(email) == 0:
+            raise ValueError("Введіть email")
 
 
     def show_client(self):
@@ -176,12 +179,20 @@ class Operation:
             raise ValueError("Автомобіль не належить жодному автосалону")
 
         if not isinstance(months, int) or months <= 0:
-            raise ValueError("Термін лізінгу має бути додатнім числом")
+            raise ValueError("Значення повинно бути додатнім")
 
-        if not isinstance(first_payment, int) or first_payment <= 0:
-            raise ValueError("Перший внесок має бути додатнім числом")
+        if not isinstance(first_payment, int):
+            raise ValueError("Перший внесок має бути числом")
+        if first_payment < 0:
+            raise ValueError("Значення повинно бути додатнім")
+        if car.sellPrice < 0:
+            raise ValueError("Значення повинно бути додатнім")
+
 
         monthly_payment = (car.sellPrice - first_payment) / months
+
+        if monthly_payment < 0:
+            raise ValueError("Значення повинно бути більше 0")
         operation_info = {
             "type": "Лізінг",
             "client": f"{client._client_name} {client._last_name}",
@@ -206,6 +217,8 @@ class Operation:
 
         trade_in_value = old_car.purchasePrice * 0.8
         total_payment = new_car.sellPrice - trade_in_value + additional_payment
+        if total_payment < 0 or additional_payment < 0:
+            raise ValueError("Значення повинно бути більше 0")
 
         if old_car.dealership:
             old_car.dealership.cars.remove(old_car)
@@ -228,9 +241,10 @@ class Operation:
                 f"Загальна сума: {total_payment:.2f}")
 
 
-
-
-
-
-
 try:
+
+    car1 = Car("Volvo", "V40", 2018, "Sedan", 100000, 150000, "Manual", "Gasoline", "White", 1)
+
+
+except ValueError as e:
+    print("Error:", e)
