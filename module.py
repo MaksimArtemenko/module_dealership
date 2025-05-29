@@ -169,6 +169,7 @@ class Client:
     def show_client(self):
             return f"Name:{self._client_name}\nLastname:{self._last_name}\nPhone number:{self._phone_number}\nID:{self.clientID}\n"
 class Operation:
+
     operation_history = []
     @staticmethod
     def leasing_car(client: Client, car: Car, months: int, first_payment: int):
@@ -227,10 +228,82 @@ class Operation:
                 f"Додаткова плата {additional_payment}\n"
                 f"Загальна сума: {total_payment:.2f}")
 
+    def sell_car(client: Client, car: Car):
+        if car.dealership is None:
+            raise ValueError("Автомобіль не належить жодному автосалону")
+
+        operation_info = {
+            "type": "Продаж",
+            "client": f"{client._client_name} {client._last_name}",
+            "car": f"{car.brand} {car.model}",
+            "price": car.sellPrice,
+            "dealership": car.dealership.dealership_name
+        }
+        Operation.operation_history.append(operation_info)
+
+        car.dealership.cars.remove(car)
+        car.dealership = None
+
+        return (f"Продаж оформлено: {client._client_name} {client._last_name} купив {car.brand} {car.model}\n"
+                f"Ціна: {car.sellPrice} ")
+
+    @staticmethod
+    def buy_car(dealership: Dealership, car: Car):
+        if car.dealership is not None:
+            raise ValueError("Цей автомобіль вже належить іншому автосалону")
+
+        operation_info = {
+            "type": "Закупівля",
+            "dealership": dealership.dealership_name,
+            "car": f"{car.brand} {car.model}",
+            "purchase_price": car.purchasePrice
+        }
+        Operation.operation_history.append(operation_info)
+
+
+        dealership.add_car(car)
+
+        return (f"Закупівля оформлена: автосалон {dealership.dealership_name} придбав {car.brand} {car.model}\n"
+                f"Ціна закупівлі: {car.purchasePrice} ")
+
+    @classmethod
+    def show_operation_history(cls):
+        if not cls.operation_history:
+            return "Історія операцій порожня"
+
+        result = "Історія операцій:"
+        for i, operation in enumerate(cls.operation_history, 1):
+            result += f"Операція #{i}:\n"
+            result += f"Тип: {operation['type']}\n"
+
+            if operation['type'] == "Лізінг":
+                result += (f"Клієнт: {operation['client']}\n"
+                           f"Автомобіль: {operation['car']}\n"
+                           f"Перший внесок: {operation['down_payment']} ₴\n"
+                           f"Щомісячний платіж: {operation['monthly_payment']:.2f}\n"
+                           f"Загальна вартість: {operation['total_price']} \n")
+
+            elif operation['type'] == "Трейд-ін":
+                result += (f"Клієнт: {operation['client']}\n"
+                           f"Зданий автомобіль: {operation['old_car']}\n"
+                           f"Отриманий автомобіль: {operation['new_car']}\n"
+                           f"Вартість трейд-іну: {operation['trade_in_value']}\n"
+                           f"Додаткова плата: {operation['additional_payment']}\n"
+                           f"Загальна сума: {operation['total_payment']}\n")
+
+            elif operation['type'] == "Продаж":
+                result += (f"Клієнт: {operation['client']}\n"
+                           f"Автомобіль: {operation['car']}\n"
+                           f"Ціна продажу: {operation['price']}\n"
+                           f"Автосалон: {operation['dealership']}\n")
+
+            elif operation['type'] == "Закупівля":
+                result += (f"Автосалон: {operation['dealership']}\n"
+                           f"Автомобіль: {operation['car']}\n"
+                           f"Ціна закупівлі: {operation['purchase_price']}\n")
+
+        return result
 
 
 
 
-
-
-try:
