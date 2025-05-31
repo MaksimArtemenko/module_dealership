@@ -178,7 +178,7 @@ class Operation:
             raise ValueError("Автомобіль не належить жодному автосалону")
 
         if not isinstance(months, int) or months <= 0:
-            raise ValueError("Значення повинно бути додатнім")
+            raise ValueError("Термін лізінгу має бути додатнім числом")
 
         if not isinstance(first_payment, int):
             raise ValueError("Перший внесок має бути числом")
@@ -189,9 +189,6 @@ class Operation:
 
 
         monthly_payment = (car.sellPrice - first_payment) / months
-
-        if monthly_payment < 0:
-            raise ValueError("Значення повинно бути більше 0")
         operation_info = {
             "type": "Лізінг",
             "client": f"{client._client_name} {client._last_name}",
@@ -216,8 +213,6 @@ class Operation:
 
         trade_in_value = old_car.purchasePrice * 0.8
         total_payment = new_car.sellPrice - trade_in_value + additional_payment
-        if total_payment < 0 or additional_payment < 0:
-            raise ValueError("Значення повинно бути більше 0")
 
         if old_car.dealership:
             old_car.dealership.cars.remove(old_car)
@@ -287,6 +282,33 @@ class Operation:
             result += f"Операція #{i}:\n"
             result += f"Тип: {operation['type']}\n"
 
+            if operation['type'] == "Лізінг":
+                result += (f"Клієнт: {operation['client']}\n"
+                           f"Автомобіль: {operation['car']}\n"
+                           f"Перший внесок: {operation['down_payment']} ₴\n"
+                           f"Щомісячний платіж: {operation['monthly_payment']:.2f}\n"
+                           f"Загальна вартість: {operation['total_price']} \n")
+
+            elif operation['type'] == "Трейд-ін":
+                result += (f"Клієнт: {operation['client']}\n"
+                           f"Зданий автомобіль: {operation['old_car']}\n"
+                           f"Отриманий автомобіль: {operation['new_car']}\n"
+                           f"Вартість трейд-іну: {operation['trade_in_value']}\n"
+                           f"Додаткова плата: {operation['additional_payment']}\n"
+                           f"Загальна сума: {operation['total_payment']}\n")
+
+            elif operation['type'] == "Продаж":
+                result += (f"Клієнт: {operation['client']}\n"
+                           f"Автомобіль: {operation['car']}\n"
+                           f"Ціна продажу: {operation['price']}\n"
+                           f"Автосалон: {operation['dealership']}\n")
+
+            elif operation['type'] == "Закупівля":
+                result += (f"Автосалон: {operation['dealership']}\n"
+                           f"Автомобіль: {operation['car']}\n"
+                           f"Ціна закупівлі: {operation['purchase_price']}\n")
+
+        return result
 
 
 
