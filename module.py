@@ -41,7 +41,7 @@ class Dealership:
                                f"ID: {car['car_ID']}, "
                                f"Рік: {car['years']}, "
                                f"Тип: {car['type']}, "
-                               f"Ціна: {car['sellPrice']}\n")
+                               f"Ціна: {car['sellPrice']}$\n")
             return result
 
     def add_car(self, car):
@@ -87,17 +87,31 @@ class Dealership:
             result += f"ID: {dealership['ID']}, Назва: {dealership['Name']}\n"
         return result
 
-    def remove_dealership(self, dealership_ID):
-        initial_length = len(Dealership.all_dealerships)
-        Dealership.all_dealerships = [d for d in Dealership.all_dealerships if d['ID'] != dealership_ID]
-        if len(Dealership.all_dealerships) == initial_length:
+    @staticmethod
+    def remove_dealership(dealership_ID):
+        dealership_to_remove = next((d for d in Dealership.all_dealerships if d['ID'] == dealership_ID), None)
+        if not dealership_to_remove:
             return f"Автосалон з ID {dealership_ID} не знайдено"
+        Dealership.all_dealerships = [d for d in Dealership.all_dealerships if d['ID'] != dealership_ID]
+        Dealership.all_cars_dealerships = [
+            c for c in Dealership.all_cars_dealerships
+            if c['dealership_name'] != dealership_to_remove['Name']]
         if not Dealership.all_dealerships:
             return "Список автосалонів порожній"
-        result = "Оновлений список автосалонів:\n"
-        for dealership in Dealership.all_dealerships:
-            result += f"ID: {dealership['ID']}, Назва: {dealership['Name']}\n"
-        return result
+        return Dealership.all_dealerships_info()
+    @staticmethod
+    def remove_car(self, car):
+        if car not in self.cars:
+            raise ValueError("Ця машина не належить цьому автосалону")
+
+        self.cars.remove(car)
+        car.dealership = None
+
+        Dealership.all_cars_dealerships = [
+            c for c in Dealership.all_cars_dealerships
+            if c['car_ID'] != car.carID
+        ]
+        return f"Машина {car.brand} {car.model} видалена з автосалону"
 
 
 
@@ -130,18 +144,11 @@ class Car:
             raise ValueError("Значення не може бути більшим, максимальне значення - 2025")
 
 
-    def add_to_dealership(self, dealership):
-        if self.dealership is not None:
-            raise ValueError(f"Автосалон порожній: {dealership.dealership_name}!")
-
-        if not isinstance(dealership, Dealership):
-            raise ValueError("Потрібно передати об'єкт класу Dealership")
-        return dealership.add_car(self)
-
     def get_dealership_info(self):
         if self.dealership is None:
             return "Ця машина не належить жодному автосалону."
         return f"Машина {self.brand} {self.model} знаходиться в {self.dealership.dealership_name} (ID: {self.dealership.dealership_ID})"
+
 
 class Client:
     def __init__(self, client_name: str, last_name: str, email: str, phone_number: str, clientID: int):
@@ -205,7 +212,7 @@ class Operation:
 
 
     @staticmethod
-    def trade_in(client:Client, old_car: Car, new_car: Car, additional_payment: int = 0):
+    def trade_in(client:Client, old_car: Car, new_car: Car, additional_payment: int):
         if new_car.dealership is None:
             raise ValueError("Новий автомобіль не належить жодному автосалону")
         if old_car.dealership is None:
@@ -234,6 +241,7 @@ class Operation:
                 f"Додаткова плата {additional_payment}\n"
                 f"Загальна сума: {total_payment:.2f}")
 
+    @staticmethod
     def sell_car(client: Client, car: Car):
         if car.dealership is None:
             raise ValueError("Автомобіль не належить жодному автосалону")
@@ -248,10 +256,11 @@ class Operation:
         Operation.operation_history.append(operation_info)
 
         car.dealership.cars.remove(car)
+        Dealership.all_cars_dealerships = [c for c in Dealership.all_cars_dealerships if c['car_ID'] != car.carID]
         car.dealership = None
 
         return (f"Продаж оформлено: {client._client_name} {client._last_name} купив {car.brand} {car.model}\n"
-                f"Ціна: {car.sellPrice} ")
+                f"Ціна: {car.sellPrice} $")
 
     @staticmethod
     def buy_car(dealership: Dealership, car: Car):
@@ -270,7 +279,7 @@ class Operation:
         dealership.add_car(car)
 
         return (f"Закупівля оформлена: автосалон {dealership.dealership_name} придбав {car.brand} {car.model}\n"
-                f"Ціна закупівлі: {car.purchasePrice} ")
+                f"Ціна закупівлі: {car.purchasePrice} $")
 
     @classmethod
     def show_operation_history(cls):
@@ -300,18 +309,51 @@ class Operation:
             elif operation['type'] == "Продаж":
                 result += (f"Клієнт: {operation['client']}\n"
                            f"Автомобіль: {operation['car']}\n"
-                           f"Ціна продажу: {operation['price']}\n"
+                           f"Ціна продажу: {operation['price']}$\n"
                            f"Автосалон: {operation['dealership']}\n")
 
             elif operation['type'] == "Закупівля":
                 result += (f"Автосалон: {operation['dealership']}\n"
                            f"Автомобіль: {operation['car']}\n"
-                           f"Ціна закупівлі: {operation['purchase_price']}\n")
+                           f"Ціна закупівлі: {operation['purchase_price']}$\n")
+
 
         return result
 
 
+if __name__ == "__main__":
+
+    try:
+        car1 = Car("BMW", "5 Series", 2020, "Sedan", 10000, 12000, "Manual", "Gasoline", "Black", 1)
+        car2 = Car("Volvo","V40", 2018, "Sedan", 15000, 18000, "Manual", "Gasoline", "Black", 2)
+        car3 = Car("Kia","Rio", 2019, "Sedan", 12000, 15000, "Manual", "Gasoline", "Black", 3)
+        car4 = Car("Skoda","Kamiq", 2017, "Sedan", 13000, 17000, "Manual", "Gasoline", "Black", 4)
+
+        d1 = Dealership("BMW Kyiv", 1)
+        d2 = Dealership("Volvo Kharkiv", 2)
+        d3 = Dealership("Kia Sumy", 3)
+        d4 = Dealership("Skoda Kyiv", 4)
+
+        d1.add_car(car1)
+        d2.add_car(car2)
+        d3.add_car(car3)
+        client1 = Client("Ivan", "Ivanov", "maxdfdf@fskjdfs,sdf", "380123456789", 1)
+
+        print(Operation.sell_car(client1, car1))
+
+
+        print(Operation.buy_car(d4, car4))
+
+        print(Operation.trade_in(client1, car2, car3, 1000))
+
+        print(Operation.show_operation_history())
 
 
 
-try:
+
+
+
+
+
+    except Exception as e:
+        print("Error:",e)
