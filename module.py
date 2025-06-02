@@ -61,19 +61,18 @@ class Dealership:
         dealerships_dict = {}
         for car in Dealership.all_cars_dealerships:
             dealership_name = car['dealership_name']
-        if dealership_name not in dealerships_dict:
-            dealerships_dict[dealership_name] = []
-        dealerships_dict[dealership_name].append(car)
-
+            if dealership_name not in dealerships_dict:
+                dealerships_dict[dealership_name] = []
+            dealerships_dict[dealership_name].append(car)
         result = "Список автосалонів та їх автомобілів:\n"
         for dealership_name, cars in dealerships_dict.items():
             result += f"\nАвтосалон {dealership_name}:\n"
-        for car in cars:
-            result += (f"- {car['brand']} {car['model']}, "
-                       f"ID: {car['car_ID']}, "
-                       f"Рік: {car['years']}, "
-                       f"Тип: {car['type']}, "
-                       f"Ціна: {car['sellPrice']}$\n")
+            for car in cars:
+                result += (f"- {car['brand']} {car['model']}, "
+                           f"ID: {car['car_ID']}, "
+                           f"Рік: {car['years']}, "
+                           f"Тип: {car['type']}, "
+                           f"Ціна: {car['sellPrice']}$\n")
         return result
 
     def add_car(self, car):
@@ -123,14 +122,14 @@ class Dealership:
             result += (
                 f"- {car.brand} {car.model} ({car.years}), "
                 f"ID: {car.carID}, Тип: {car.type}, "
-                f"Ціна: {car.sellPrice} ₴\n"
+                f"Ціна: {car.sellPrice} $\n"
             )
         return result
 
     @classmethod
     def all_dealerships_info(cls):
         """
-        Відображає інформацію про всі зареєстровані автосалони.
+        Відображає інформацію про всі зареєстровані автосалони
 
         Returns:
             str: Список всіх автосалонів з їх ID та назвами
@@ -165,7 +164,7 @@ class Dealership:
         if not Dealership.all_dealerships:
             return "Список автосалонів порожній"
         return Dealership.all_dealerships_info()
-    @staticmethod
+
     def remove_car(self, car):
         """
         Видаляє автомобіль з автосалону.
@@ -285,8 +284,6 @@ class Client:
             raise ValueError("Невірний номер телефону. Введіть номер телефону в форматі +380123456789")
         if len(phone_number) > 12:
             raise ValueError("Невірний номер телефону. Введіть номер телефону в форматі +380123456789")
-        if len(phone_number) <= 0:
-            raise ValueError("Числове значення повинно бути більше або дорівнює 0")
         if len(email) == 0:
             raise ValueError("Введіть email")
 
@@ -299,7 +296,7 @@ class Client:
             str: Форматована інформація про клієнта, включаючи ім'я,
                 прізвище, номер телефону та ID
         """
-        return f"Name:{self._client_name}\nLastname:{self._last_name}\nPhone number:{self._phone_number}\nID:{self.clientID}\n"
+        return f"Ім'я:{self._client_name}\nПрізвище:{self._last_name}\nНомер телефону:{self._phone_number}\nID:{self.clientID}\n"
 class Operation:
     """
     Клас для управління операціями з автомобілями.
@@ -352,8 +349,8 @@ class Operation:
         Operation.operation_history.append(operation_info)
 
         return (f"Лізінг оформленно: {client._client_name} {client._last_name}, отримує {car.brand} {car.model}\n"
-        f"Перший внесок {first_payment}\n"
-        f"Щомісячний платіж: {monthly_payment:.2f} на {months} місяців")
+        f"Перший внесок {first_payment} $\n"
+        f"Щомісячний платіж: {monthly_payment:.2f} $ на {months} місяців")
 
 
     @staticmethod
@@ -398,8 +395,8 @@ class Operation:
         return (f"Трейд-ін оформлено: {client._client_name} {client._last_name}\n"
                 f"Здає:{old_car.brand} {old_car.model} за {trade_in_value}\n"
                 f"Отримує:{new_car.brand} {new_car.model}\n"
-                f"Додаткова плата {additional_payment}\n"
-                f"Загальна сума: {total_payment:.2f}")
+                f"Додаткова плата {additional_payment}$\n"
+                f"Загальна сума: {total_payment:.2f}$")
 
     @staticmethod
     def sell_car(client: Client, car: Car):
@@ -528,11 +525,18 @@ if __name__ == "__main__":
         d4 = Dealership("Skoda Kyiv", 4)
 
 
-        client1 = Client("Ivan", "Ivanov", "maxdfdf@fskjdfs,sdf", "380123456789", 1)
+        client1 = Client("Maksim", "Artemenko", "max06032007@gmail.com", "380123456789", 1)
 
-        print(d1.add_car(car1))
-        print(d2.add_car(car2))
-        print(d3.add_car(car3))
+        d1.add_car(car1)
+        d2.add_car(car2)
+        d3.add_car(car3)
+
+        Operation.buy_car(d4, car4)
+        Operation.sell_car(client1, car1)
+        Operation.trade_in(client1, car2, car3, 1000)
+        Operation.leasing_car(client1, car4, 12, 10000)
+
+        print(Operation.show_operation_history())
 
 
 
